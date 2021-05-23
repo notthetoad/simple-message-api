@@ -1,52 +1,36 @@
-import sqlite3
-
 from fastapi import FastAPI, Depends, Security, HTTPException
-from database import create_connection
-from . import schemas
-from . import crud
 from fastapi.security.api_key import APIKey
+from sqlalchemy.orm import Session
+from . import schemas, crud
+from .database import get_db
+from .crud import get_api_key
 
 
 app = FastAPI()
 
-# @app.post('/message', status_code=201)
-# async def create_message(db: create_connection):
-  # msg_text = text.text
-  # curr = app.db_connection.cursor()
-  # curr.execute("INSERT INTO message (text) VALUES (?)", (msg_text, ))
-  # app.db_connection.commit()
-  # return
 
 @app.post('/message', status_code=201)
-async def create_message(text: schemas.MessageRequest, db: create_connection = Depends(create_connection, api_key: APIKey = Depends(crud.get_api_key))):
-  msg = crud.create_message(db, text, api_key)
+async def create_message(text: schemas.MessageRequest, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
+  result = crud.create_message(db, text, api_key)
+  return {"text": result.text, "id": result.id}
 
-@app.patch('/message/{message_id}')
-async def update_message(text: MessageRequest, message_id: int, api_key: APIKey = Depends(get_api_key)):
-  msg_text = text.text
-  curr = app.db_connection.cursor()
-  curr.execute("UPDATE message SET text = ?, counter = 0 WHERE id = ?", (msg_text, message_id, ))
-  app.db_connection.commit()
-  return
+@app.patch('/message/{message_id}', status_code=200, response_model=schemas.MessageResponse)
+async def update_message(message_id: int, text: schemas.MessageRequest, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
+  result = crud.update_message(db, message_id, text, api_key)
+  if result == False:
+    return HTTPException(status_code=404)
+  return result
 
-@app.delete('/message/{message_id}')
-async def delete_message(message_id: int, api_key: APIKey = Depends(get_api_key)):
-  curr = app.db_connection.cursor()
-  curr.execute("DELETE FROM message WHERE id = (?)", (message_id, ))
-  app.db_connection.commit()
-  return
+@app.delete('/message/{message_id}', status_code=200)
+async def delete_message(message_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
+  result = crud.delete_message(db, message_id, api_key)
+  if result == False:
+    return HTTPException(status_code=404)
+  return {"deleted message id": message_id}
 
-# Returning list instead of JSON
-@app.get('/message/{message_id}', status_code=200)
-# async def get_message(message_id: int):
-def get_message(message_id: int):
-  app.db_connection.row_factory = sqlite3.Row
-  curr = app.db_connection.cursor()
-  curr.execute("UPDATE message SET counter = counter + 1 WHERE id = (?)", (message_id, ))
-  app.db_connection.commit()
-  msg = curr.execute("SELECT text, counter from message WHERE id = (?)", (message_id, )).fetchone()
-  return {"text": msg['text'], "counter": msg['counter']}
-
-@app.get('/test', status_code=200)
-async def get_test():
-  return
+@app.get('/message/{message_id}', status_code=200, response_model=schemas.MessageResponse)
+async def get_message(message_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
+  message = crud.get_message(db, message_id, api_key)
+  if message == False:
+    return HTTPException(status_code=404)
+  return message

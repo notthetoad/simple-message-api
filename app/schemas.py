@@ -4,12 +4,16 @@ from pydantic import BaseModel, PositiveInt, constr
 class MessageRequest(BaseModel):
   text: constr(min_length=1, max_length=160)
 
+  class Config:
+    orm_mode = True
+
 # RESPONSES
 class MessageResponse(BaseModel):
+  id: int
   text: constr(min_length=1, max_length=160)
-  counter: PositiveInt
+  counter: int
 
-# USER MODEL
-class User(BaseModel):
-  username: str
+  class Config:
+    orm_mode = True
+
   
