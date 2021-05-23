@@ -1,5 +1,3 @@
-import pytest
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -28,15 +26,11 @@ API_KEY = '?api_key=helloworld'
 
 client = TestClient(app)
 
+def test_unauthorized_get():
+  response = client.get('/message/1')
+  assert response.status_code == 403
 
-# def test_unauthorized_create_message():
-  # response = client.post(
-    # '/message',
-    # json={"text": "hello world"}
-  # )
-  # assert response.status_code == 403
-
-def test_create_message_success():
+def test_create_message():
   response = client.post(
     f'/message{API_KEY}',
     json={"text": "hello world"}
@@ -89,3 +83,11 @@ def test_delete_message():
   )
   assert response.status_code == 200
   assert response.json() == {"deleted message id": msg_id}
+
+def test_get_message():
+  response = client.get(f'/message/1{API_KEY}')
+  assert response.status_code == 200, response.text
+  data = response.json()
+  assert data['text'] == 'hello world'
+  assert 'id' in data
+  assert data['id'] == 1
