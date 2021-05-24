@@ -26,11 +26,11 @@ async def delete_message(message_id: int, db: Session = Depends(get_db), api_key
   result = crud.delete_message(db, message_id, api_key)
   if result == False:
     raise HTTPException(status_code=404)
-  return {"deleted message id": message_id}
+  return {"deleted_message_id": message_id}
 
 @app.get('/message/{message_id}', status_code=200, response_model=schemas.MessageResponse)
-async def get_message(message_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
-  message = crud.get_message(db, message_id, api_key)
+async def get_message(message_id: int, db: Session = Depends(get_db)):
+  message = crud.get_message(db, message_id)
   if message == False:
     raise HTTPException(status_code=404)
   return message

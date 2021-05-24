@@ -49,7 +49,7 @@ def delete_message(db: Session, message_id: int, api_key: APIKey):
   db.commit()
   return True
 
-def get_message(db: Session, message_id: int, api_key: APIKey):
+def get_message(db: Session, message_id: int):
   db_msg: Message = db.query(Message).filter(Message.id == message_id).first()
   if db_msg is None:
     return False
