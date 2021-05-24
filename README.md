@@ -11,6 +11,8 @@ FastAPI uvicorn SQLAlchemy
 # Deployment
 
 API deployed on heroku with GitHub automatic deploy.
+If you want to run it locally use:
+`uvicorn app.main:app --reload`
 
 # Authorization
 
