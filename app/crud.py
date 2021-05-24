@@ -51,8 +51,8 @@ def delete_message(db: Session, message_id: int, api_key: APIKey):
 
 def get_message(db: Session, message_id: int, api_key: APIKey):
   db_msg: Message = db.query(Message).filter(Message.id == message_id).first()
-  db_msg.counter += 1
-  db.commit()
   if db_msg is None:
     return False
+  db_msg.counter += 1
+  db.commit()
   return db_msg
