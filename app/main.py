@@ -18,19 +18,19 @@ async def create_message(text: schemas.MessageRequest, db: Session = Depends(get
 async def update_message(message_id: int, text: schemas.MessageRequest, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
   result = crud.update_message(db, message_id, text, api_key)
   if result == False:
-    return HTTPException(status_code=404)
+    raise HTTPException(status_code=404)
   return result
 
 @app.delete('/message/{message_id}', status_code=200)
 async def delete_message(message_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
   result = crud.delete_message(db, message_id, api_key)
   if result == False:
-    return HTTPException(status_code=404)
+    raise HTTPException(status_code=404)
   return {"deleted message id": message_id}
 
 @app.get('/message/{message_id}', status_code=200, response_model=schemas.MessageResponse)
 async def get_message(message_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
   message = crud.get_message(db, message_id, api_key)
   if message == False:
-    return HTTPException(status_code=404)
+    raise HTTPException(status_code=404)
   return message
